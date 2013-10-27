@@ -14,8 +14,8 @@ define http_response => type {
     public onCreate(response::bytes) => {
         local(break)   = #response->find('\r\n\r\n')
 
-        .'headerBytes' = #response->sub(1, #break - 1)
-        .'body'        = #response->sub(#break + 1)
+        .'headerBytes' = #response->sub(1, #break + 3)
+        .'body'        = #response->sub(#break + 4)
 
         .populateHeaderInfo
     }
@@ -155,17 +155,19 @@ define http_response => type {
         local(end_status)  = #tmp_headers->find('\r\n')
         local(message)     = #tmp_headers->sub(1, #end_status - 1)->split(' ')
 
-        #tmp_headers->remove(1, #end_status + 1)
-        #tmp_headers->replace('\r\n ' , ' ')
-        #tmp_headers->replace('\r\n\t', '\t')
+        #tmp_headers
+            ->remove(1, #end_status + 1)
+            & replace('\r\n ' , ' ')
+            & replace('\r\n\t', '\t')
+            & removeTrailing('\r\n')
 
         .'headers' = map
         with header in #tmp_headers->split('\r\n')
-        skip 1  // First line is HTTP response line
         let key = #header->sub(1, #header->find(':') - 1)
         let val = #header->sub(#header->find(':') + 1)
         let cur = .'headers'->find(#key)
         do {
+
             #val->trim
             // Taking advantage of #cur being a references in the else clause
             #cur == void
