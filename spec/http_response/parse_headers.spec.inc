@@ -1,7 +1,9 @@
 local(here) = currentCapture->callSite_file->stripLastComponent + '/'
 not #here->beginsWith('/') or #here->size == 1
     ? #here = io_file_getcwd + '/' + #here
-sourcefile(file(#here + '../spec_helper.inc'), -autoCollect=false)->invoke
+if(not var_defined('_prep4tests')) => {
+    sourcefile(file(#here + '../spec_helper.inc'), -autoCollect=false)->invoke
+}
 
 
 describe(::http_response) => {

@@ -124,7 +124,7 @@ define http_response => type {
         do #curl->set(#option->first, #option->second)
 
         .'body'        = #curl->result
-        .'headerBytes' = #curl->headers
+        .'headerBytes' = #curl->header
         .'curl'        = #curl
         
         .populateHeaderInfo
