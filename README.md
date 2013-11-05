@@ -9,7 +9,7 @@ Example Usage:
     local(resp) = http_response(
         "http://example.com/foo",
         -postParams = (:'name'='Rhino'),
-        -options = (:CURLOPT_CUSTOMREQUEST = `PUT`)
+        -reqMethod  = `PUT`
     )
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
     #resp->bodyAsString
