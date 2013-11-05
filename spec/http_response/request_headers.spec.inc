@@ -70,3 +70,37 @@ describe(`Requests with POST params passed in`) => {
         expect(`run=for%20it&marty=ball`, #resp->body->split("\r\n\r\n")->second)
     }
 }
+
+
+describe(`Creating PUT requests`) => {
+    it(`Allows for setting up A PUT request`) => {
+        local(resp) = http_response(
+            #myHost,
+            -reqMethod=`PUT`
+        )
+
+        expect(#resp->body->beginsWith("PUT / HTTP/1.1\r\n"))
+    }
+
+    it(`Issues a PUT request with POST data`) => {
+        local(resp) = http_response(
+            #myHost,
+            -postParams='data',
+            -reqMethod=`PUT`
+        )
+
+        expect(#resp->body->beginsWith("PUT / HTTP/1.1\r\n"))
+        expect(`data`, #resp->body->split("\r\n\r\n")->second)
+    }
+
+    it(`Issues a PUT request with array POST param data`) => {
+        local(resp) = http_response(
+            #myHost,
+            -postParams=(:`run`=`for it`, `marty`=`ball`),
+            -reqMethod=`PUT`
+        )
+
+        expect(#resp->body->beginsWith("PUT / HTTP/1.1\r\n"))
+        expect(`run=for%20it&marty=ball`, #resp->body->split("\r\n\r\n")->second)
+    }
+}

@@ -37,6 +37,7 @@ define http_response => type {
         -sslKeyPasswd=void,
         -timeout=void,
         -connectTimeout=void,
+        -reqMethod::string='',
         -options=(:)
     ) => {
         .'options'->insert(`url`            = #url           )
@@ -117,6 +118,9 @@ define http_response => type {
         #connectTimeout?
             #curl->set(CURLOPT_CONNECTTIMEOUT, integer(#connectTimeout))
 
+        // HTTP Request Method
+        #reqMethod->size > 0
+            ? #curl->set(CURLOPT_CUSTOMREQUEST, #reqMethod)
 
         // These options will override anything already set
         with option in #options
