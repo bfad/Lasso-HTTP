@@ -134,7 +134,7 @@ define http_response => type {
         .populateHeaderInfo
     }
 
-    // But of getters
+    // Bunch of getters
     public
         url            => .'options'->find(`url`),
         username       => .'options'->find(`username`),
