@@ -2,7 +2,7 @@ local(here) = currentCapture->callSite_file->stripLastComponent + '/'
 not #here->beginsWith('/') or #here->size == 1
     ? #here = io_file_getcwd + '/' + #here
 if(not var_defined('_prep4tests')) => {
-    sourcefile(file(#here + '../spec_helper.inc'), -autoCollect=false)->invoke
+    sourcefile(file(#here + './spec_helper.inc'), -autoCollect=false)->invoke
 }
 
 
@@ -16,7 +16,7 @@ describe(::http_response) => {
             expect('OK'      , #resp->statusMsg)
         }
         
-        it("properly parses basic headers") => {handle_error => stdoutnl('\n\n' + error_msg + '\n' + error_stack + '\n')
+        it("properly parses basic headers") => {
             local(resp) = http_response(bytes('\
                 HTTP/1.1 200 OK\r\n\
                 Content-Type: text/html\r\n\
