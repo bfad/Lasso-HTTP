@@ -1,19 +1,23 @@
-# HTTP_Response
+# Lasso HTTP
 
 This is meant to be an Object-Oriented replacement for include_url, especially
 for accessing Web APIs. It is essentially a nice wrapper for the built-in curl
-type to do HTTP requests.
+type to do HTTP requests. It comes with two types: http_request and
+http_response. This allows for creating requests that can be later inspected
+and modified as well as a nice response opject for parsing raw HTTP responses.
 
 Example Usage:
 
-    local(resp) = http_response(
+    local(req) = http_request(
         "http://example.com/foo",
         -postParams = (:'name'='Rhino'),
         -reqMethod  = `PUT`
     )
+    local(resp) = #req->response
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
     #resp->bodyAsString
 
+This is still under development, so bug reports and suggestions are welcome.
 
 
 # License
