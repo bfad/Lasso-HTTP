@@ -70,12 +70,13 @@ define http_request => type {
 
         local(copy) = #value->asCopy
 
-        if(#copy->beginsWith(`https`)) => {
+        if(#copy->beginsWith(`https://`)) => {
             .urlProtocol = `https://`
             #copy->remove(1,8)
         else
             .urlProtocol = `http://`
-            #copy->remove(1,7)
+            #copy->beginsWith(`http://`)
+                ? #copy->remove(1,7)
         }
 
         local(path_start)  = #copy->find(`/`)
@@ -116,105 +117,80 @@ define http_request => type {
             select #elm->first->asString->asBytes->encodeUrl + '=' + #elm->second->asString->asBytes->encodeUrl
         )->join(`&`)
     }
-/*
 
-        // Prepare URL with Get Parameters
-        #url = #url->asCopy
-        local(delimiter) = (#url >> `?` ? `&` | `?`)
-        with param in #getParams do {
-            #url->append(#delimiter + #param->first->asString->asBytes->encodeUrl + '=' + #param->second->asString->asBytes->encodeUrl)
+    public response => {
+        .curl->isNotA(::curl)? .makeRequest
 
-            #delimiter == `?`
-                ? #delimiter = `&`
-        }
+        return http_response(.curl->result)
+    }
 
-        local(curl) = curl(#url)
+    private makeRequest => {
+        local(curl) = curl(.url)
 
         // Set cURL authentication options
-        if(#username != '') => {
-            #curl->set(CURLOPT_USERPWD, #username + ':' + #password)
+        if(.username != '') => {
+            #curl->set(CURLOPT_USERPWD, .username + ':' + .password)
             
-            #basicAuthOnly
+            .basicAuthOnly
                 ? #curl->set(CURLOPT_HTTPAUTH, CURLAUTH_BASIC)
                 | #curl->set(CURLOPT_HTTPAUTH, CURLAUTH_ANY)
         }
 
         // Set cURL postParams
-        if(#postParams->isA(::trait_forEach)) => {
+        if(.postParams->isA(::trait_forEach)) => {
             #curl->set(CURLOPT_POSTFIELDS,
                 (
-                    with param in #postParams
+                    with param in .postParams
                     select #param->first->asString->asBytes->encodeUrl + '=' + #param->second->asString->asBytes->encodeUrl
                 )->join('&')
             )
-        else(#postParams->isA(::string) or #postParams->isA(::bytes))
-            #curl->set(CURLOPT_POSTFIELDS, #postParams)
+        else(.postParams->isA(::string) or .postParams->isA(::bytes))
+            #curl->set(CURLOPT_POSTFIELDS, .postParams)
         }
 
         // Prepare headers
-        #curl->set(CURLOPT_HTTPHEADER,
+        #curl->set(CURLOPT_HTTPHEADER, .headers)
+
+/* Documentation says to pass an array of pairs to CURLOPT_HTTPHEADER, we'll see if it works
             (
                 with item in #headers
                 let header = (#item->isA(::pair) ? #item->first + `: ` + #item->second | #item->asString)
                 select #header
             )->join("\r\n")
         )
-
+*/
         // SSL Options
-        #curl->set(CURLOPT_SSL_VERIFYPEER, not #noVerify)
-        #sslCert?
-            #curl->set(CURLOPT_SSLCERT, string(#sslCert))
-        #sslCertType?
-            #curl->set(CURLOPT_SSLCERTTYPE, string(#sslCertType))
-        #sslKey?
-            #curl->set(CURLOPT_SSLKEY, string(#sslKey))
-        #sslKeyType?
-            #curl->set(CURLOPT_SSLKEYTYPE, string(#sslKeyType))
-        #sslKeyPasswd?
-            #curl->set(CURLOPT_SSLKEYPASSWD, string(#sslKeyPasswd))
+        #curl->set(CURLOPT_SSL_VERIFYPEER, not .sslNoVerify)
+        .sslCert?
+            #curl->set(CURLOPT_SSLCERT, string(.sslCert))
+        .sslCertType?
+            #curl->set(CURLOPT_SSLCERTTYPE, string(.sslCertType))
+        .sslKey?
+            #curl->set(CURLOPT_SSLKEY, string(.sslKey))
+        .sslKeyType?
+            #curl->set(CURLOPT_SSLKEYTYPE, string(.sslKeyType))
+        .sslKeyPasswd?
+            #curl->set(CURLOPT_SSLKEYPASSWD, string(.sslKeyPasswd))
 
         // Timeout Options
-        #timeout?
-            #curl->set(CURLOPT_TIMEOUT, integer(#timeout))
-        #connectTimeout?
-            #curl->set(CURLOPT_CONNECTTIMEOUT, integer(#connectTimeout))
+        .timeout?
+            #curl->set(CURLOPT_TIMEOUT, integer(.timeout))
+        .connectTimeout?
+            #curl->set(CURLOPT_CONNECTTIMEOUT, integer(.connectTimeout))
 
         // HTTP Request Method
-        #method->size > 0
-            ? #curl->set(CURLOPT_CUSTOMREQUEST, #method)
+        .method->size > 0
+            ? #curl->set(CURLOPT_CUSTOMREQUEST, .method)
 
         // These options will override anything already set
-        with option in #options
+        with option in .options
         where #option->isA(::pair)
         do #curl->set(#option->first, #option->second)
 
-// Look at CURLOPT_HEADER option and CURLOPT_HTTPHEADER
+        // Because we want the header and body to be together for
+        // creating an http_response object, set this option
+        #curl->set(CURLOPT_HEADER, 1)
 
-        .'body'        = #curl->result
-        .'headerBytes' = #curl->header
-        .'curl'        = #curl
-        
-        .populateHeaderInfo
+        .`curl` = #curl
     }
-
-    // Bunch of getters
-    public
-        url            => .'options'->find(`url`),
-        username       => .'options'->find(`username`),
-        password       => .'options'->find(`password`),
-        basicAuthOnly  => .'options'->find(`basicAuthOnly`),
-        getParams      => .'options'->find(`getParams`),
-        postParams     => .'options'->find(`postParams`),
-        headers        => .'options'->find(`headers`),
-        noVerify       => .'options'->find(`noVerify`),
-        sslCert        => .'options'->find(`sslCert`),
-        sslCertType    => .'options'->find(`sslCertType`),
-        sslKey         => .'options'->find(`sslKey`),
-        sslKeyType     => .'options'->find(`sslKeyType`),
-        sslKeyPasswd   => .'options'->find(`sslKeyPasswd`),
-        timeout        => .'options'->find(`timeout`),
-        connectTimeout => .'options'->find(`connectTimeout`),
-        method         => .'options'->find(`method`),
-        options        => .'options'->find(`options`)*/
-
 }
