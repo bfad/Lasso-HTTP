@@ -4,6 +4,7 @@ if(not var_defined('_prep4tests')) => {
         ? #here = io_file_getcwd + '/' + #here
 
     sourcefile(file(#here + '../http_response.inc'), -autoCollect=false)->invoke
+    sourcefile(file(#here + '../http_request.inc' ), -autoCollect=false)->invoke
     var(_prep4tests) = true
 
 
