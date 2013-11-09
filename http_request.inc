@@ -149,16 +149,14 @@ define http_request => type {
         }
 
         // Prepare headers
-        #curl->set(CURLOPT_HTTPHEADER, .headers)
-
-/* Documentation says to pass an array of pairs to CURLOPT_HTTPHEADER, we'll see if it works
+        #curl->set(CURLOPT_HTTPHEADER,
             (
-                with item in #headers
+                with item in .headers
                 let header = (#item->isA(::pair) ? #item->first + `: ` + #item->second | #item->asString)
                 select #header
             )->join("\r\n")
         )
-*/
+
         // SSL Options
         #curl->set(CURLOPT_SSL_VERIFYPEER, not .sslNoVerify)
         .sslCert?
