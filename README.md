@@ -15,7 +15,7 @@ Example Usage:
     )
     local(resp) = #req->response
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
-    #resp->body->asString
+    #resp->bodyString
 
 This is still under development, so bug reports and suggestions are welcome.
 
