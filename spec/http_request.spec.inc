@@ -55,4 +55,16 @@ describe(::http_request) => {
             #req->getParams
         )
     }
+
+    it(`Allows for creating an empty request object`) => {
+        expect->errorCode(error_code_noError) => {
+            local(req) = http_request
+        }
+    }
+
+    it(`Throws an error if it tries to make a request with no URL`) => {
+        expect->errorMsg(`No URL specified`) => {
+            http_request->response
+        }
+    }
 }

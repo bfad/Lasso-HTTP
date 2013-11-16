@@ -24,7 +24,7 @@ define http_request => type {
         public options
 
 
-    // Code adapted from include_url
+    public onCreate() => { .onCreate('') }
     public onCreate(
         url::string,
         -username::string='', 
@@ -124,7 +124,10 @@ define http_request => type {
         return http_response(.curl->result)
     }
 
+    // Code adapted from include_url
     private makeRequest => {
+        fail_if(.urlHostname == '', `No URL specified`)
+
         local(curl) = curl(.url)
 
         // Set cURL authentication options
