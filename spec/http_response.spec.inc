@@ -7,7 +7,7 @@ if(not var_defined('_prep4tests')) => {
 
 
 describe(::http_response) => {
-    describe('Parsing the HTTP Resopnse Headers') => {
+    describe('Parsing the HTTP Response Headers') => {
         it("properly parses the HTTP message") => {
             local(resp) = http_response(bytes('HTTP/1.1 200 OK\r\n\r\n'))
             
@@ -70,6 +70,49 @@ describe(::http_response) => {
             '))
             
             expect('Message Body', #resp->body)
+        }
+    }
+
+
+    describe(`Parsing data from format returned by curl->raw`) => {
+        it(`Properly populates header and body data`) => {
+             local(data) = (:
+                true,
+                bytes("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"),
+                bytes("<!DOCTYPE html><html><head><title></title></head><body><h1>Hello, World!</h1></body></html>")
+            )
+            local(resp) = http_response(#data)
+
+            expect(#data->get(2), #resp->headerBytes)
+            expect(#data->get(3), #resp->body)
+
+            expect('HTTP/1.1'                , #resp->protocol)
+            expect(200                       , #resp->statusCode)
+            expect('OK'                      , #resp->statusMsg)
+            expect( 1                        , #resp->headers->size)
+            expect(`text/html; charset=UTF-8`, #resp->headers->find(`Content-Type`))
+        }
+
+        it(`Removes any intermediate headers`) => {
+            local(data) = (:
+                true,
+                bytes(
+                    "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm=\"Site\"\r\n\r\n" +
+                    "HTTP/1.1 100 Continue\r\n\r\n" +
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
+                ),
+                bytes("<!DOCTYPE html><html><head><title></title></head><body><h1>MooseHair</h1></body></html>")
+            )
+            local(resp) = http_response(#data)
+            
+            expect("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n", #resp->headerBytes)
+            expect(#data->get(3), #resp->body)
+            
+            expect('HTTP/1.1' , #resp->protocol)
+            expect(200        , #resp->statusCode)
+            expect('OK'       , #resp->statusMsg)
+            expect( 1         , #resp->headers->size)
+            expect(`text/html`, #resp->headers->find(`Content-Type`))
         }
     }
 }

@@ -17,6 +17,25 @@ define http_response => type {
         .populateHeaderInfo
     }
 
+    // From curl->raw
+    public onCreate(response::staticarray) => {
+        local(header_data) = #response->get(2)
+        
+        // For some reason, it keeps all the intermediate headers
+        // so remove all previous headers (such as auth chalenges)
+        local(headers) = array
+        local(break)
+        while(#break := #header_data->find('\r\n\r\n')) => {
+            #headers->insert(#header_data->sub(1, #break+3))
+            #header_data = #header_data->sub(#break+4)
+        }
+
+        .`headerBytes` = #headers->last
+        .'body'        = #response->get(3)
+
+        .populateHeaderInfo
+    }
+
     // Getters
     public 
         headerBytes => .`headerBytes`,

@@ -1,6 +1,6 @@
 define http_request => type {
     data
-        private curl,
+        public curl,
 
         
         public urlProtocol   ::string = '',
@@ -121,11 +121,11 @@ define http_request => type {
     public response => {
         .curl->isNotA(::curl)? .makeRequest
 
-        return http_response(.curl->result)
+        return http_response(.curl->raw)
     }
 
     // Code adapted from include_url
-    private makeRequest => {
+    public makeRequest => {
         fail_if(.urlHostname == '', `No URL specified`)
 
         local(curl) = curl(.url)
@@ -187,10 +187,6 @@ define http_request => type {
         with option in .options
         where #option->isA(::pair)
         do #curl->set(#option->first, #option->second)
-
-        // Because we want the header and body to be together for
-        // creating an http_response object, set this option
-        #curl->set(CURLOPT_HEADER, 1)
 
         .`curl` = #curl
     }
