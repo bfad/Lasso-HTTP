@@ -4,7 +4,7 @@ This is meant to be an Object-Oriented replacement for include_url, especially
 for accessing Web APIs. It is essentially a nice wrapper for the built-in curl
 type to do HTTP requests. It comes with two types: http_request and
 http_response. This allows for creating requests that can be later inspected
-and modified as well as a nice response opject for parsing raw HTTP responses.
+and modified as well as a nice response object for parsing raw HTTP responses.
 
 Example Usage:
 
