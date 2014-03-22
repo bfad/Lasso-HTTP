@@ -157,7 +157,7 @@ define http_request => type {
                 with item in .headers
                 let header = (#item->isA(::pair) ? #item->first + `: ` + #item->second | #item->asString)
                 select #header
-            )->join("\r\n")
+            )->asStaticArray
         )
 
         // SSL Options
