@@ -8,6 +8,7 @@ and modified as well as a nice response object for parsing raw HTTP responses.
 
 Example Usage:
 
+```lasso
     local(req) = http_request(
         "http://example.com/foo",
         -postParams = (:'name'='Rhino'),
@@ -16,6 +17,7 @@ Example Usage:
     local(resp) = #req->response
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
     #resp->bodyString
+```
 
 
 ## Building Requests
@@ -24,20 +26,24 @@ The http_request type allows you to easily build a curl request through many
 steps. This means you don't have to have everything ready for the request and
 can even delay in making the request:
 
+```lasso
     local(req) = http_request("http://example.com/foo")
 
     #req->headers    = (:'Content-Type'='application/json')
     #req->postParams = json_serialize(map('moose'='hair'))
     #req->timeout    = 300
+```
 
 Alternatively, if you have everything ready, you can pass all the data to the
 creator method:
 
+```lasso
     local(req) = http_request(
         "http://example.com/foo",
         -postParams = (:'name'='Rhino'),
         -reqMethod  = `PUT`
     )
+```
 
 
 ## Inspecting Responses
@@ -45,12 +51,38 @@ creator method:
 Once you have a request built, you can get the result back in an http_response
 type and easily inspect the various parts:
 
+```lasso
     // If the request doesn't return with a 200 status code,
     // error with the status and message.
     // Otherwise show the body of the HTTP response
     local(resp) = #req->response
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
     #resp->bodyString
+```
+
+
+## Full Example
+
+More often then not, this is probably the form your code will take:
+
+```lasso
+    local(resp) = http_request(
+        "http://example.com/foo",
+        -postParams = (:'name'='Rhino'),
+        -reqMethod  = `PUT`
+    )->response
+
+    match(#resp->statusCode) => {
+    case(400)
+        content_body = 'Malformed Request'
+    case(401)
+        content_body = 'Credentials Expired'
+    case(200)
+        content_body = #resp->bodyString
+    case
+        fail(#resp->statusCode, #resp->statusMsg)
+    }
+```
 
 
 ## Feedback
