@@ -17,10 +17,48 @@ Example Usage:
     fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
     #resp->bodyString
 
-This is still under development, so bug reports and suggestions are welcome.
+
+## Building Requests
+
+The http_request type allows you to easily build a curl request through many
+steps. This means you don't have to have everything ready for the request and
+can even delay in making the request:
+
+    local(req) = http_request("http://example.com/foo")
+
+    #req->headers    = (:'Content-Type'='application/json')
+    #req->postParams = json_serialize(map('moose'='hair'))
+    #req->timeout    = 300
+
+Alternatively, if you have everything ready, you can pass all the data to the
+creator method:
+
+    local(req) = http_request(
+        "http://example.com/foo",
+        -postParams = (:'name'='Rhino'),
+        -reqMethod  = `PUT`
+    )
 
 
-# License
+## Inspecting Responses
+
+Once you have a request built, you can get the result back in an http_response
+type and easily inspect the various parts:
+
+    // If the request doesn't return with a 200 status code,
+    // error with the status and message.
+    // Otherwise show the body of the HTTP response
+    local(resp) = #req->response
+    fail_if(#resp->getStatus != 200, #resp->statusCode, #resp->statusMsg)
+    #resp->bodyString
+
+
+## Feedback
+
+Please use Github Issues area for bug reports and suggestions.
+
+
+## License
 
 Copyright 2013 Bradley Lindsay
 
