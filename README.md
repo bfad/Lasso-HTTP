@@ -20,6 +20,18 @@ Example Usage:
 ```
 
 
+## Basic Installation
+
+The easies way to install these files is to just stick http_request.lasso and
+http_response.lasso into either your instance's LassoStartup folder or your
+LASSO9_MASTER_HOME LassoStartup folder.
+
+If you need further help for this, or a different installation method (such as
+compiling them into a dynamic library), please post your question to
+[StackOverflow](http://stackoverflow.com/questions/ask) or the
+[LassoTalk](http://www.lassotalk.com) list.
+
+
 ## Building Requests
 
 The http_request type allows you to easily build a curl request through many
