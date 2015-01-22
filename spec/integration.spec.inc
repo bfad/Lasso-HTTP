@@ -36,7 +36,7 @@ describe(`Requests with GET parameters`) => {
     it(`requests the correct URL when GET parameters are passed as params`) => {
         local(resp) = http_request(
             #myHost + `/rhino`,
-            -getParams = (:`run`=1, `id`=`silver`)
+            -queryParams = (:`run`=1, `id`=`silver`)
         )->response
 
         expect(#resp->body->beginsWith("GET /rhino?run=1&id=silver HTTP/1.1\r\n"))
@@ -45,7 +45,7 @@ describe(`Requests with GET parameters`) => {
     it(`requests the correct URL when GET parameters in both URL string and as params`) => {
         local(resp) = http_request(
             #myHost + `/rhino?run=1`,
-            -getParams = (:`id`=`silver`)
+            -queryParams = (:`id`=`silver`)
         )->response
 
         expect(#resp->body->beginsWith("GET /rhino?run=1&id=silver HTTP/1.1\r\n"))

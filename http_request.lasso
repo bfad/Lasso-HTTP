@@ -3,15 +3,15 @@ define http_request => type {
         public curl,
 
         
-        public urlProtocol   ::string = '',
-        public urlHostname   ::string = '',
-        public urlPath       ::string = '',
-        public username      ::string = '',
-        public password      ::string = '',
+        public urlProtocol   ::string  = '',
+        public urlHostname   ::string  = '',
+        public urlPath       ::string  = '',
+        public username      ::string  = '',
+        public password      ::string  = '',
         public basicAuthOnly ::boolean = false,
-        public getParams     ::staticarray = (:),
+        public queryParams   ::array   = array,
         public postParams,
-        public headers       ::staticarray = (:),
+        public headers       ::array   = array,
         public sslNoVerify   ::boolean = false,
         public sslCert,
         public sslCertType,
@@ -30,9 +30,9 @@ define http_request => type {
         -username::string='', 
         -password::string='',
         -basicAuthOnly::boolean=false,
-        -getParams::trait_forEach=(:),
+        -queryParams::trait_forEach=array,
         -postParams=void,
-        -headers::trait_forEach=(:),
+        -headers::trait_forEach=array,
         -sslNoVerify::boolean=false,
         -sslCert=void,
         -sslCertType=void,
@@ -44,12 +44,22 @@ define http_request => type {
         -method::string='',
         -options::trait_forEach=(:)
     ) => {
-        .getParams      = #getParams->asStaticArray
+        #queryParams->isNotA(::array)
+            ? #queryParams->hasMethod(::asArray)
+                ? #queryParams = #queryParams->asArray
+                | #queryParams = (with elm in #queryParams select #elm)->asStaticArray->asArray
+
+        #headers->isNotA(::array)
+            ? #headers->hasMethod(::asArray)
+                ? #headers = #headers->asArray
+                | #headers = (with elm in #headers select #elm)->asStaticArray->asArray
+
+        .queryParams    = #queryParams
         .postParams     = #postParams
         .username       = #username
         .password       = #password
         .basicAuthOnly  = #basicAuthOnly
-        .headers        = #headers->asStaticArray
+        .headers        = #headers
         .sslNoVerify    = #sslNoVerify
         .sslCert        = #sslCert
         .sslCertType    = #sslCertType
@@ -60,11 +70,12 @@ define http_request => type {
         .connectTimeout = #connectTimeout
         .method         = #method
         .options        = #options->asStaticArray
-        // URL must go last (or at least after getParams)
+        
+        // URL must go last (or at least after queryParams)
         .url            = #url
     }
 
-    public url => .urlProtocol + .urlHostname + .urlPath + .getParamsString
+    public url => .urlProtocol + .urlHostname + .urlPath + .queryParamsString
     public url=(value::string) => {
         // split up the different parts
 
@@ -103,17 +114,17 @@ define http_request => type {
         let param = #item->split(`=`)
         do #params->insert(#param->first=#param->second)
 
-        .getParams = #params->asStaticArray + .getParams
+        .queryParams = #params + .queryParams
 
         return #value
     }
 
-    public getParamsString::string => {
-        .getParams->size == 0
+    public queryParamsString::string => {
+        .queryParams->size == 0
             ? return ``
         
         return '?' + (
-            with elm in .getParams
+            with elm in .queryParams
             select #elm->first->asString->asBytes->encodeUrl + '=' + #elm->second->asString->asBytes->encodeUrl
         )->join(`&`)
     }
